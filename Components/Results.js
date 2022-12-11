@@ -80,19 +80,16 @@ export default function Results() {
     );
   };
   return (
-    <SafeAreaView>
-      <ScrollView
+    <SafeAreaView style={{flex: 1}}>
+      <FlatList
+        data={results}
+        renderItem={item}
+        keyExtractor={(item, index) => index.toString()}
+        nestedScrollEnabled={true}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }>
-        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-          <FlatList
-            data={results}
-            renderItem={item}
-            keyExtractor={(item, index) => index.toString()}
-          />
-        </View>
-      </ScrollView>
+        }
+      />
     </SafeAreaView>
   );
 }

@@ -1,55 +1,64 @@
-import {FlatList, StyleSheet, Text, View} from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import * as React from 'react';
 import {Button, Card} from 'react-native-elements';
 import {LinearProgress} from '@rneui/themed';
+import {useEffect, useRef, useState} from 'react';
+import {CommonActions, useNavigation} from '@react-navigation/native';
 
-const questions = [
-  {
-    name: 'Question 1',
-    question: 'jak wlozyc slonia do lodowki w 3 krokach?',
-    answers: [
-      {a: 'otworz wloz zamknij'},
-      {b: 'nie da sie'},
-      {c: 'to pytanie jest glupie'},
-      {d: 'wloz slonia do lodowki'},
-    ],
-  },
-];
-function Question() {
-  const answers = [
-    {
-      a: 'otworz ',
-      b: 'nie da sie',
-      c: 'to pytanie',
-      d: 'wloz slonia ',
-    },
-  ];
-  return (
-    <Card containerStyle={{height: 300, alignContent: 'space-between'}}>
-      <View style={{flexDirection: 'row', margin: 10}}>
-        <View style={{flexDirection: 'column', margin: 10}}>
-          <View style={{flexDirection: 'row', margin: 10}}>
-            <Button title="to pytanie " />
-          </View>
-          <View style={{flexDirection: 'row', margin: 10}}>
-            <Button title="to pytanie " />
-          </View>
-        </View>
-        <View style={{flexDirection: 'column', margin: 10}}>
-          <View style={{flexDirection: 'row', margin: 10}}>
-            <Button title="to pytanie " />
-          </View>
-          <View style={{flexDirection: 'row', margin: 10}}>
-            <Button title="to pytanie " />
-          </View>
-        </View>
-      </View>
-    </Card>
-  );
-}
+let finished = false;
 
-export default function TestScreen({navigation}) {
-  return (
+export default function TestScreen(props) {
+  const tasks = props.route.params.tasks;
+  const countInterval = useRef(null);
+  const [count, setCount] = useState(0);
+  const [CurrentQ, setCurrentQ] = useState(0);
+  const [Score, setScore] = useState(0);
+  const max = tasks.length;
+
+  function Finish() {
+    clearInterval(countInterval);
+    return (
+      <Card>
+        <Card.Title>
+          Ukończyłeś test z wynikiem {Score}/{max}
+        </Card.Title>
+      </Card>
+    );
+  }
+
+  function check(s) {
+    setCount(0);
+    if (CurrentQ + 1 < max) {
+      setCurrentQ(CurrentQ + 1);
+      console.log(CurrentQ + '   ' + max);
+    } else if (CurrentQ + 1 >= max) {
+      finished = true;
+    }
+    if (s) {
+      setScore(Score + 1);
+    }
+  }
+
+  useEffect(() => {
+    console.log(finished);
+    if (!finished) {
+      countInterval.current = setInterval(
+        () => setCount(old => old + 1 / tasks[CurrentQ].duration),
+        1000,
+      );
+      return () => clearInterval(countInterval);
+    }
+  }, [CurrentQ, tasks]);
+
+  return finished ? (
+    <Finish />
+  ) : (
     <Card>
       <View
         style={{
@@ -58,28 +67,58 @@ export default function TestScreen({navigation}) {
           alignContent: 'space-around',
           marginTop: 8,
         }}>
-        <Text style={{flex: 1}}> Question x of x</Text>
-        <Text style={{flex: 0}}>Time</Text>
+        <Text style={{flex: 1}}>
+          Question {CurrentQ + 1} of {max}
+        </Text>
+        <Text style={{flex: 0}}>{tasks[CurrentQ].duration}</Text>
       </View>
       <LinearProgress
         style={{height: 10, marginVertical: 10}}
-        value={0.2}
+        value={count}
         variant="determinate"
       />
-      <Text style={styles.header}>{questions[0].name}</Text>
-      <Text>{questions[0].question}</Text>
-      <Question />
+      <Text style={styles.header}>{tasks[CurrentQ].question}</Text>
+      <Card containerStyle={{height: 300, alignContent: 'space-between'}}>
+        <View style={styles.buttonscontainer}>
+          <Pressable
+            style={styles.button}
+            onPress={() => check(tasks[CurrentQ].answers[0].isCorrect)}>
+            <Text style={{fontSize: 20}}>
+              {tasks[CurrentQ].answers[0].content}
+            </Text>
+          </Pressable>
+          <Pressable
+            style={styles.button}
+            onPress={() => check(tasks[CurrentQ].answers[1].isCorrect)}>
+            <Text style={{fontSize: 20}}>
+              {tasks[CurrentQ].answers[1].content}
+            </Text>
+          </Pressable>
+          <Pressable
+            style={styles.button}
+            onPress={() => check(tasks[CurrentQ].answers[2].isCorrect)}>
+            <Text style={{fontSize: 20}}>
+              {tasks[CurrentQ].answers[2].content}
+            </Text>
+          </Pressable>
+          <Pressable
+            style={styles.button}
+            onPress={() => check(tasks[CurrentQ].answers[3].isCorrect)}>
+            <Text style={{fontSize: 20}}>
+              {tasks[CurrentQ].answers[3].content}
+            </Text>
+          </Pressable>
+        </View>
+      </Card>
     </Card>
   );
 }
 
 const styles = StyleSheet.create({
   buttonscontainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    height: 300,
+    justifyContent: 'space-evenly',
     marginHorizontal: 5,
-    width: '40%',
-    alignSelf: 'flex-end',
   },
   container: {
     flexFlow: 'row',
@@ -89,7 +128,11 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 30,
   },
-
+  button: {
+    alignItems: 'center',
+    backgroundColor: '#DDDDDD',
+    padding: 10,
+  },
   textTag: {
     color: '#0027FF',
     fontWeight: 'bold',

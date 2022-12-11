@@ -10,6 +10,7 @@ import TestScreen from './Components/TestScreen';
 import {useEffect, useState} from 'react';
 import {getData} from './Components/StorageHelper';
 import WaitingScreen from './Components/WaitingScreen';
+import SplashScreen from 'react-native-splash-screen';
 
 const refreshToken = () => {
   return new Promise(res => setTimeout(res, 1000));
@@ -57,7 +58,12 @@ export default function App() {
   }
   refreshToken().then(() => {
     setTimeElapsed(true);
+    SplashScreen.hide();
   });
 
-  return hasTimeElapsed ? <Navigators /> : <WaitingScreen />;
+  return (
+    <NavigationContainer>
+      {hasLaunched ? <DrawerF /> : <Stack1 />}
+    </NavigationContainer>
+  );
 }
