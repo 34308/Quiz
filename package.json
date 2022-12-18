@@ -31,6 +31,9 @@
     "react-native-table-component-2": "^2.0.0",
     "react-native-vector-icons": "^9.2.0"
   },
+  "rnpm": {
+    "assets": ["./assets/fonts/"]
+  },
   "devDependencies": {
     "@babel/core": "^7.12.9",
     "@babel/runtime": "^7.12.5",
