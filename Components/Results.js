@@ -47,6 +47,7 @@ export default function Results() {
   };
   async function getResultsFromNet() {
     try {
+
       const response = await fetch('https://tgryl.pl/quiz/results');
       const json = await response.json();
       setResults(json);

@@ -21,7 +21,7 @@ export default function TestCard (){
     return(
         tests.map((u, i) => {
             return (
-                <TouchableOpacity key={u.name} onPress={() => navigation.navigate('Test',{id:u.id})}>
+                <TouchableOpacity key={u.name} onPress={() => navigation.navigate('Test',{id:u.id,name:u.name})}>
                     <Card>
                         <Card.Title>{u.name}</Card.Title>
                         <Card.Divider />
