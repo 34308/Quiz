@@ -1,41 +1,135 @@
-import {createDrawerNavigator} from '@react-navigation/drawer';
+import {
+  createDrawerNavigator,
+  DrawerContentScrollView,
+  DrawerItem,
+  DrawerItemList,
+} from '@react-navigation/drawer';
 import React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import HomeScreen from './Components/Home';
 import Results from './Components/Results';
 import Contract from './Components/Contract';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {useEffect, useState} from 'react';
+import {getData, storeData} from './Components/StorageHelper';
+import {
+  crateTable,
+  db,
+  getDatabase,
+  insertDetailsOfTestIntoDatabase,
+  insertTestsIntoDatabase,
+} from './Components/dbConnector';
+import {getAllTestFromNet, getTestFromNet} from './Components/serverConnector';
+import NetInfo from '@react-native-community/netinfo';
 
 import TestScreen from './Components/TestScreen';
-import {useEffect, useState} from 'react';
-import {getData} from './Components/StorageHelper';
-import WaitingScreen from './Components/WaitingScreen';
-import SplashScreen from 'react-native-splash-screen';
-
-const refreshToken = () => {
-  return new Promise(res => setTimeout(res, 1000));
+import shuffle from 'lodash.shuffle';
+let placeholder = {
+  id: '62032610061e',
+  name: 'Moda na sukces',
+  description: 'Quiz z najważniejszych wydarzeń serialu.',
+  tags: ['tv', 'tasiemiec', 'serial'],
+  level: 'średni',
+  numberOfTasks: 5,
 };
+let placeholder1 = [
+  {
+    id: '62032610069ef9b2616c761e',
+    name: 'Moda na sukces',
+    description: 'Quiz z najważniejszych wydarzeń serialu.',
+    tags: ['tv', 'tasiemiec', 'serial'],
+    level: 'średni',
+    numberOfTasks: 5,
+  },
+];
+
 export default function App() {
   const [hasLaunched, setHasLaunched] = useState(false);
   const [hasTimeElapsed, setTimeElapsed] = useState(false);
+  const [TimeChecked, setTimeChecked] = useState(false);
+  const [randomT, setRandomTest] = useState(placeholder);
+  const [tests, setTests] = useState(placeholder1);
+  const [state, setState] = useState(true);
+  const [gotDatabase, didGetdatabase] = useState(false);
+  async function getTests() {
+    NetInfo.fetch().then(async state => {
+      if (state.isConnected) {
+        setTests(shuffle(await getAllTestFromNet()));
+      } else {
+        setTestFromDatabase();
+      }
+    });
+  }
   useEffect(() => {
+    if (!gotDatabase) {
+      getTests();
+      didGetdatabase(true);
+    }
+
     if (!hasLaunched) {
-      getData().then(r => {
+      getData('HAS_LAUNCHED4').then(r => {
         if (r) {
-          console.log('1');
           setHasLaunched(true);
         }
       });
+      crateTable();
     }
-  }, [hasLaunched]);
+  }, [getTests, hasLaunched]);
+
+  if (!TimeChecked) {
+    getData('Datex').then(d => {
+      if (d === undefined) {
+        downloadTests();
+        storeData(Date.now().toString(), 'Datex');
+      } else if (parseInt(d) - d > 86400000) {
+        downloadTests();
+        storeData(Date.now().toString(), 'Datex');
+        console.log('date:' + (Date.now() - parseInt(d)));
+      }
+    });
+    setTimeChecked(true);
+  }
+  async function downloadTests() {
+    const json = await getAllTestFromNet();
+    insertTestsIntoDatabase(json);
+    for (const test of json) {
+      insertDetailsOfTestIntoDatabase(await getTestFromNet(test.id));
+    }
+  }
   const Stack = createNativeStackNavigator();
   const Drawer = createDrawerNavigator();
   function DrawerF() {
     return (
-      <Drawer.Navigator initialRouteName="Home">
+      <Drawer.Navigator
+        initialRouteName="Home"
+        drawerContent={props => {
+          return (
+            <DrawerContentScrollView {...props}>
+              <DrawerItemList {...props} />
+              <DrawerItem
+                label="Download tests"
+                onPress={() => downloadTests()}
+              />
+            </DrawerContentScrollView>
+          );
+        }}>
         <Drawer.Screen name="Home" component={HomeScreen} />
         <Drawer.Screen name="Results" component={Results} />
-        <Drawer.Screen name="Test" component={TestScreen} />
+        {tests.map((u, i) => {
+          return (
+            <Drawer.Screen
+              name={u.name}
+              key={u.name}
+              component={TestScreen}
+              initialParams={{id: u.id, name: u.name}}
+            />
+          );
+        })}
+        <Drawer.Screen
+          name="Random Test"
+          initialParams={{id: -1, name: 0}}
+          component={TestScreen}
+        />
       </Drawer.Navigator>
     );
   }
@@ -49,21 +143,35 @@ export default function App() {
       </Stack.Navigator>
     );
   }
-  function Navigators() {
-    return (
-      <NavigationContainer>
-        {hasLaunched ? <DrawerF /> : <Stack1 />}
-      </NavigationContainer>
-    );
-  }
-  refreshToken().then(() => {
-    setTimeElapsed(true);
-    SplashScreen.hide();
-  });
+
 
   return (
     <NavigationContainer>
       {hasLaunched ? <DrawerF /> : <Stack1 />}
     </NavigationContainer>
   );
+  async function setTestFromDatabase() {
+    const query = 'select * from tests';
+    let tests = '[';
+    let i = 0;
+    db.transaction(async txn => {
+      await txn.executeSql(
+        query,
+        [],
+        (transaction, resultSet) => {
+          for (var i = 0; i < resultSet.rows.length; i++) {
+            tests = tests + JSON.stringify(resultSet.rows.item(i));
+            if (i < resultSet.rows.length - 1) {
+              tests = tests + ',';
+            }
+          }
+          tests = tests + ']';
+          setTests(shuffle(JSON.parse(tests)));
+        },
+        error => {
+          console.log('Inserting error: ' + error.message);
+        },
+      );
+    });
+  }
 }

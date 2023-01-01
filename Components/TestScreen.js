@@ -1,16 +1,12 @@
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {Pressable, StyleSheet, Text, View} from 'react-native';
 import * as React from 'react';
-import {Button, Card} from 'react-native-elements';
+import {Card} from 'react-native-elements';
 import {LinearProgress} from '@rneui/themed';
-import {Component, useEffect, useRef, useState} from 'react';
-import {CommonActions, useNavigation} from '@react-navigation/native';
-import SplashScreen from 'react-native-splash-screen';
+import {Component} from 'react';
+import {unmountComponentAtNodeAndRemoveContainer} from 'react-native/Libraries/Renderer/implementations/ReactNativeRenderer-prod';
+import {db} from './dbConnector';
+import {getRandomTestIdFromNet} from './serverConnector';
+import NetInfo from '@react-native-community/netinfo';
 
 function sendScore(Score, max, type) {
   fetch('https://tgryl.pl/quiz/result', {
@@ -30,36 +26,64 @@ function sendScore(Score, max, type) {
 }
 
 export default class TestScreen extends Component {
-  setQuestion(json) {
-    console.log('json: ' + json);
-    this.setState(previousState => ({
-      question: json,
-    }));
+  async setRandomTest() {
+    NetInfo.fetch().then(async state => {
+      if (state.isConnected) {
+        await this.getQestionsFromNet(await getRandomTestIdFromNet());
+      } else {
+        await this.setTestFromDatabase(await getRandomTestIdFromNet());
+      }
+    });
   }
   constructor(props) {
     super(props);
-    this.state = {
-      question: null,
-      countInterval: null,
-      count: 0,
-      CurrentQ: 0,
-      Score: 0,
-      max: 0,
-      loaded: false,
-      finished: false,
-      type: props.route.params.name,
-    };
-    this.getQestionsFromNet(props.route.params.id);
+    if (props.route.params.id === -1) {
+      // eslint-disable-next-line no-undef
+
+      this.state = {
+        connected: true,
+        question: null,
+        countInterval: null,
+        count: 0,
+        CurrentQ: 0,
+        Score: 0,
+        max: 0,
+        loaded: false,
+        finished: false,
+        type: '',
+      };
+      this.setRandomTest();
+    } else {
+      this.state = {
+        connected: true,
+        question: null,
+        countInterval: null,
+        count: 0,
+        CurrentQ: 0,
+        Score: 0,
+        max: 0,
+        loaded: false,
+        finished: false,
+        type: props.route.params.name,
+      };
+      this.getQestions(props.route.params.id);
+    }
   }
+  interval;
   componentDidMount() {
-    setInterval(() => {
+    this.interval = setInterval(() => {
       this.setState(old => ({
         count:
           old.count + 1 / this.state.question[this.state.CurrentQ].duration,
       }));
       console.log(this.state.count);
     }, 1000);
+    console.log('' + this.state.finished);
   }
+  componentWillUnmount() {
+    unmountComponentAtNodeAndRemoveContainer();
+  }
+
   componentDidUpdate(
     prevProps: Readonly<P>,
     prevState: Readonly<S>,
@@ -82,6 +106,7 @@ export default class TestScreen extends Component {
     }
   };
   Finish() {
+    clearInterval(this.interval);
     sendScore(this.state.Score, this.state.max, this.state.type);
     return (
       <Card>
@@ -91,41 +116,68 @@ export default class TestScreen extends Component {
       </Card>
     );
   }
-  setCurrentQ(number) {
+  setQuestion(json) {
+    console.log('json: ' + json);
     this.setState(previousState => ({
+      question: json,
+    }));
+  }
+  setCurrentQ(number) {
+    this.setState(() => ({
       CurrentQ: number,
     }));
   }
   setLoaded(state) {
-    this.setState(previousState => ({
+    this.setState(() => ({
       loaded: state,
     }));
   }
   setScore(number) {
-    this.setState(previousState => ({
+    this.setState(() => ({
       Score: number,
     }));
   }
   setMax(number) {
-    this.setState(previousState => ({
+    this.setState(() => ({
       max: number,
     }));
   }
 
   async getQestionsFromNet(id) {
     try {
+      console.log('did id survived?: ' + id);
       const response = await fetch('https://tgryl.pl/quiz/test/' + id);
       const json = await response.json();
 
       this.setQuestion(json.tasks);
       this.setLoaded(true);
       this.setMax(json.tasks.length);
+      this.setType(json.name);
     } catch (error) {
       console.error(error);
     }
   }
+  async setTestFromDatabase(id) {
+    const query = 'select * from test where test.id= ?';
+    db.transaction(async txn => {
+      await txn.executeSql(
+        query,
+        [id],
+        (transaction, resultSet) => {
+          console.log('check1' + JSON.parse(resultSet.rows.item(0).tasks)[0]);
+          this.setQuestion(JSON.parse(resultSet.rows.item(0).tasks));
+          this.setLoaded(true);
+          this.setMax(JSON.parse(resultSet.rows.item(0).tasks).length);
+          this.setType(resultSet.rows.item.name);
+          console.log('jsonQ: ' + JSON.parse(resultSet.rows.item(0).tasks));
+        },
+        error => {
+          console.log('Inserting error: ' + error.message);
+        },
+      );
+    });
+  }
   check(s) {
-    console.log('check');
     if (this.state.CurrentQ + 1 < this.state.max) {
       this.setCurrentQ(this.state.CurrentQ + 1);
     } else if (this.state.CurrentQ + 1 >= this.state.max) {
@@ -232,6 +284,23 @@ export default class TestScreen extends Component {
     } else {
       return <Text>loading Test</Text>;
     }
+  }
+
+  setType = name => {
+    this.setState(previousState => ({
+      type: name,
+    }));
+  };
+
+  async getQestions(id) {
+    NetInfo.fetch().then(async state => {
+      console.log('net1: ' + state.isConnected);
+      if (state.isConnected) {
+        await this.getQestionsFromNet(id);
+      } else {
+        await this.setTestFromDatabase(id);
+      }
+    });
   }
 }
 

@@ -1,8 +1,9 @@
 import AsyncStorage from '@react-native-community/async-storage';
-const HAS_LAUNCHED = 'HAS_LAUNCHED';
-export const getData = async () => {
+// HAS_LAUNCHED4
+// Datex
+export const getData = async key => {
   try {
-    const value = await AsyncStorage.getItem('HAS_LAUNCHED4');
+    const value = await AsyncStorage.getItem(key);
     if (value !== null) {
       return value;
     }
@@ -10,9 +11,9 @@ export const getData = async () => {
     return null;
   }
 };
-export const storeData = async value => {
+export const storeData = async (value, key) => {
   try {
-    await AsyncStorage.setItem('HAS_LAUNCHED4', value);
+    await AsyncStorage.setItem(key, value);
   } catch (e) {
     // saving error
   }

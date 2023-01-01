@@ -1,5 +1,5 @@
 import RNExitApp from 'react-native-exit-app';
-import {ScrollView, Text, View} from 'react-native';
+import {ScrollView, Text} from 'react-native';
 import {Button, Card} from 'react-native-elements';
 
 import {useNavigation} from '@react-navigation/native';
@@ -10,7 +10,7 @@ export default function Contract() {
 
   function Accept() {
     navigation.navigate('Drawer');
-    storeData('true');
+    storeData('true', 'HAS_LAUNCHED4');
   }
   return (
     <ScrollView>

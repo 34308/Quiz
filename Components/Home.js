@@ -3,7 +3,6 @@ import TestCard from './TestCard';
 import Foot from './Foot';
 
 export default function HomeScreen() {
-
   return (
     <View>
       <ScrollView>
