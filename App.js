@@ -24,31 +24,13 @@ import NetInfo from '@react-native-community/netinfo';
 
 import TestScreen from './Components/TestScreen';
 import shuffle from 'lodash.shuffle';
-let placeholder = {
-  id: '62032610061e',
-  name: 'Moda na sukces',
-  description: 'Quiz z najważniejszych wydarzeń serialu.',
-  tags: ['tv', 'tasiemiec', 'serial'],
-  level: 'średni',
-  numberOfTasks: 5,
-};
-let placeholder1 = [
-  {
-    id: '62032610069ef9b2616c761e',
-    name: 'Moda na sukces',
-    description: 'Quiz z najważniejszych wydarzeń serialu.',
-    tags: ['tv', 'tasiemiec', 'serial'],
-    level: 'średni',
-    numberOfTasks: 5,
-  },
-];
 
 export default function App() {
   const [hasLaunched, setHasLaunched] = useState(false);
   const [hasTimeElapsed, setTimeElapsed] = useState(false);
   const [TimeChecked, setTimeChecked] = useState(false);
-  const [randomT, setRandomTest] = useState(placeholder);
-  const [tests, setTests] = useState(placeholder1);
+  const [randomT, setRandomTest] = useState([]);
+  const [tests, setTests] = useState([]);
   const [state, setState] = useState(true);
   const [gotDatabase, didGetdatabase] = useState(false);
   async function getTests() {

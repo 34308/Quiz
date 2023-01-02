@@ -7,6 +7,8 @@ import {unmountComponentAtNodeAndRemoveContainer} from 'react-native/Libraries/R
 import {db} from './dbConnector';
 import {getRandomTestIdFromNet} from './serverConnector';
 import NetInfo from '@react-native-community/netinfo';
+import {Button} from '@rneui/base';
+import {DrawerActions} from '@react-navigation/native';
 
 function sendScore(Score, max, type) {
   fetch('https://tgryl.pl/quiz/result', {
@@ -26,6 +28,25 @@ function sendScore(Score, max, type) {
 }
 
 export default class TestScreen extends Component {
+  reset() {
+    console.log('test reset');
+    this.setState({
+      connected: true,
+      question: null,
+      countInterval: null,
+      count: 0,
+      CurrentQ: 0,
+      Score: 0,
+      max: 0,
+      loaded: false,
+      finished: false,
+      type: '',
+    });
+    clearInterval(this.interval);
+    this.props.navigation.toggleDrawer();
+    this.props.navigation.setOptions({headerShown: true, swipeEnabled: true});
+    this.props.navigation.navigate('Home');
+  }
   async setRandomTest() {
     NetInfo.fetch().then(async state => {
       if (state.isConnected) {
@@ -36,7 +57,9 @@ export default class TestScreen extends Component {
     });
   }
   constructor(props) {
+    props.navigation.setOptions({headerShown: false, swipeEnabled: false});
     super(props);
+    const {navigation} = this.props.navigation;
     if (props.route.params.id === -1) {
       // eslint-disable-next-line no-undef
 
@@ -113,6 +136,7 @@ export default class TestScreen extends Component {
         <Card.Title>
           Ukończyłeś test z wynikiem {this.state.Score}/{this.state.max}
         </Card.Title>
+        <Button title={'Finish Test'} onPress={() => this.reset()} />
       </Card>
     );
   }

@@ -8,10 +8,9 @@ import shuffle from 'lodash.shuffle'
 import {db} from './dbConnector';
 import NetInfo from '@react-native-community/netinfo';
 import SplashScreen from 'react-native-splash-screen';
-let placeholder=[{"id":"62032610069ef9b2616c761e","name":"Moda na sukces","description":"Quiz z najważniejszych wydarzeń serialu.","tags":["tv","tasiemiec","serial"],"level":"średni","numberOfTasks":5}]
 export default function TestCard (){
     const navigation = useNavigation();
-    const [tests,setTests]=useState(placeholder);
+    const [tests,setTests]=useState([]);
     const [shufled,setShufled]=useState(false);
     if(!shufled){
         getTests();
