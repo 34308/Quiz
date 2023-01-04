@@ -64,7 +64,7 @@ export async function getDatabase() {
 }
 export function insertTestsIntoDatabase(json) {
   const query =
-    'Insert into tests (id,name,description,tags,level,number_of_tasks) VALUES (?,?,?,?,?,?);';
+    'Insert OR IGNORE into tests (id,name,description,tags,level,number_of_tasks) VALUES (?,?,?,?,?,?);';
   db.transaction(async txn => {
     for (const test of json) {
       await txn.executeSql(
@@ -90,7 +90,7 @@ export function insertTestsIntoDatabase(json) {
 export function insertDetailsOfTestIntoDatabase(test) {
   console.log('test db:' + JSON.stringify(test.tasks));
   const query2 =
-    'Insert into test (id,name,description,tags,level,tasks) VALUES (?,?,?,?,?,?);';
+    'Insert OR IGNORE into test (id,name,description,tags,level,tasks) VALUES (?,?,?,?,?,?);';
   db.transaction(async txn => {
     await txn.executeSql(
       query2,
@@ -111,24 +111,3 @@ export function insertDetailsOfTestIntoDatabase(test) {
     );
   });
 }
-// export async function getRandomTestFromDatabase() {
-//   try {
-//     const query = 'select * from test';
-//     return await db.transaction(async function (txn, results) {
-//       return await txn.executeSql(
-//         query,
-//         [],
-//         function (tx, res) {
-//           let l = res.rows.length;
-//           let randomNumber = Math.floor(Math.random() * l);
-//           storeData(JSON.stringify(res.rows.item(randomNumber)), 'test');
-//         },
-//         error => {
-//           console.log('Get error ' + error.message);
-//         },
-//       );
-//     });
-//   } catch (error) {
-//     console.log(error);
-//   }
-// }
