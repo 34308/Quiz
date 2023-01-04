@@ -1,8 +1,8 @@
 import {View, ScrollView} from 'react-native';
 import TestCard from './TestCard';
 import Foot from './Foot';
+export default function HomeScreen({navigation}) {
 
-export default function HomeScreen() {
   return (
     <View>
       <ScrollView>

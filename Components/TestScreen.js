@@ -8,8 +8,8 @@ import {db} from './dbConnector';
 import {getRandomTestIdFromNet} from './serverConnector';
 import NetInfo from '@react-native-community/netinfo';
 import {Button} from '@rneui/base';
+import {StackActions} from '@react-navigation/native';
 import {DrawerActions} from '@react-navigation/native';
-
 function sendScore(Score, max, type) {
   fetch('https://tgryl.pl/quiz/result', {
     method: 'POST',
@@ -43,9 +43,8 @@ export default class TestScreen extends Component {
       type: '',
     });
     clearInterval(this.interval);
-    this.props.navigation.toggleDrawer();
     this.props.navigation.setOptions({headerShown: true, swipeEnabled: true});
-    this.props.navigation.navigate('Home');
+    this.props.navigation.goBack();
   }
   async setRandomTest() {
     NetInfo.fetch().then(async state => {
@@ -56,13 +55,13 @@ export default class TestScreen extends Component {
       }
     });
   }
-  constructor(props) {
-    props.navigation.setOptions({headerShown: false, swipeEnabled: false});
-    super(props);
-    const {navigation} = this.props.navigation;
-    if (props.route.params.id === -1) {
-      // eslint-disable-next-line no-undef
 
+  constructor(props) {
+    super(props);
+    this.props.navigation.setOptions({headerShown: false, swipeEnabled: false});
+    console.log('constructor'+ props.route.params.id);
+    if (this.props.route.params.id === -1) {
+      // eslint-disable-next-line no-undef
       this.state = {
         connected: true,
         question: null,
@@ -71,6 +70,7 @@ export default class TestScreen extends Component {
         CurrentQ: 0,
         Score: 0,
         max: 0,
+        started: false,
         loaded: false,
         finished: false,
         type: '',
@@ -85,11 +85,12 @@ export default class TestScreen extends Component {
         CurrentQ: 0,
         Score: 0,
         max: 0,
+        started: false,
         loaded: false,
         finished: false,
-        type: props.route.params.name,
+        type: this.props.route.params.name,
       };
-      this.getQestions(props.route.params.id);
+      this.getQestions(this.props.route.params.id);
     }
   }
   interval;
@@ -172,7 +173,6 @@ export default class TestScreen extends Component {
       console.log('did id survived?: ' + id);
       const response = await fetch('https://tgryl.pl/quiz/test/' + id);
       const json = await response.json();
-
       this.setQuestion(json.tasks);
       this.setLoaded(true);
       this.setMax(json.tasks.length);
@@ -247,54 +247,16 @@ export default class TestScreen extends Component {
           </Text>
           <Card containerStyle={{height: 420, alignContent: 'space-between'}}>
             <View style={styles.buttonscontainer}>
-              <Pressable
-                style={styles.button}
-                onPress={() =>
-                  this.check(
-                    this.state.question[this.state.CurrentQ].answers[0]
-                      .isCorrect,
-                  )
-                }>
-                <Text style={{fontSize: 20}}>
-                  {this.state.question[this.state.CurrentQ].answers[0].content}
-                </Text>
-              </Pressable>
-              <Pressable
-                style={styles.button}
-                onPress={() =>
-                  this.check(
-                    this.state.question[this.state.CurrentQ].answers[1]
-                      .isCorrect,
-                  )
-                }>
-                <Text style={{fontSize: 20}}>
-                  {this.state.question[this.state.CurrentQ].answers[1].content}
-                </Text>
-              </Pressable>
-              <Pressable
-                style={styles.button}
-                onPress={() =>
-                  this.check(
-                    this.state.question[this.state.CurrentQ].answers[2]
-                      .isCorrect,
-                  )
-                }>
-                <Text style={{fontSize: 20}}>
-                  {this.state.question[this.state.CurrentQ].answers[2].content}
-                </Text>
-              </Pressable>
-              <Pressable
-                style={styles.button}
-                onPress={() =>
-                  this.check(
-                    this.state.question[this.state.CurrentQ].answers[3]
-                      .isCorrect,
-                  )
-                }>
-                <Text style={{fontSize: 20}}>
-                  {this.state.question[this.state.CurrentQ].answers[3].content}
-                </Text>
-              </Pressable>
+              {this.state.question[this.state.CurrentQ].answers.map((u, i) => {
+                return (
+                  <Pressable
+                    key={u.content}
+                    style={styles.button}
+                    onPress={() => this.check(u.isCorrect)}>
+                    <Text style={{fontSize: 20}}>{u.content}</Text>
+                  </Pressable>
+                );
+              })}
             </View>
           </Card>
         </Card>

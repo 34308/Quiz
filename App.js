@@ -109,10 +109,20 @@ export default function App() {
         })}
         <Drawer.Screen
           name="Random Test"
-          initialParams={{id: -1, name: 0}}
           component={TestScreen}
+          initialParams={{id: -1, name: 0}}
         />
       </Drawer.Navigator>
+    );
+  }
+  function Stack2() {
+    return (
+      <Stack.Navigator
+        name={'root'}
+        initialRouteName={'Drawer'}
+        screenOptions={{headerShown: false}}>
+        <Stack.Screen name={'Drawer'} component={DrawerF} />
+      </Stack.Navigator>
     );
   }
   function Stack1() {
@@ -126,12 +136,12 @@ export default function App() {
     );
   }
 
-
   return (
     <NavigationContainer>
-      {hasLaunched ? <DrawerF /> : <Stack1 />}
+      {hasLaunched ? <Stack2 /> : <Stack1 />}
     </NavigationContainer>
   );
+
   async function setTestFromDatabase() {
     const query = 'select * from tests';
     let tests = '[';

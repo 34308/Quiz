@@ -4,6 +4,8 @@ import {Button, Card} from 'react-native-elements';
 
 import {useNavigation} from '@react-navigation/native';
 import {storeData} from './StorageHelper';
+import SplashScreen from 'react-native-splash-screen';
+
 
 export default function Contract() {
   const navigation = useNavigation();
@@ -12,7 +14,9 @@ export default function Contract() {
     navigation.navigate('Drawer');
     storeData('true', 'HAS_LAUNCHED4');
   }
+  SplashScreen.hide();
   return (
+
     <ScrollView>
       <Card>
         <Text>

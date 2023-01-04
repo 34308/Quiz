@@ -1,6 +1,6 @@
 import { Text, StyleSheet, TouchableOpacity} from "react-native";
 import * as React from "react";
-import { useNavigation} from '@react-navigation/native';
+import {DrawerActions, useNavigation} from '@react-navigation/native';
 import {Card} from "react-native-elements";
 import {useEffect, useState} from 'react';
 import {getAllTestFromNet} from './serverConnector';
@@ -8,6 +8,10 @@ import shuffle from 'lodash.shuffle'
 import {db} from './dbConnector';
 import NetInfo from '@react-native-community/netinfo';
 import SplashScreen from 'react-native-splash-screen';
+import { StackActions } from '@react-navigation/native';
+
+
+
 export default function TestCard (){
     const navigation = useNavigation();
     const [tests,setTests]=useState([]);
@@ -55,11 +59,15 @@ export default function TestCard (){
     return(
         tests.map((u, i) => {
             return (
-                <TouchableOpacity key={u.name} onPress={() => navigation.navigate('Random Test',{id:u.id,name:u.name})}>
+                <TouchableOpacity key={u.name} onPress={()=>{
+                    console.log(u.id,u.name);
+                    navigation.dispatch(StackActions.push('Drawer',{screen:u.name},{id:u.id,name:u.name}));
+
+                }}>
                     <Card>
                         <Card.Title>{u.name}</Card.Title>
                         <Card.Divider />
-                        <Text style={styles.textTag}>{u.tags}</Text>
+                        <Text style={styles.textTag}>{u.tags.toString()}</Text>
                         <Text >{u.level}</Text>
                         <Text >{u.numberOfTasks+" Pytań."}</Text>
                         <Card.Divider />
