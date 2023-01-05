@@ -66,7 +66,6 @@ export default function App() {
       } else if (parseInt(d) - d > 86400000) {
         downloadTests();
         storeData(Date.now().toString(), 'Datex');
-        console.log('date:' + (Date.now() - parseInt(d)));
       }
     });
     setTimeChecked(true);

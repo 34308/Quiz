@@ -2,7 +2,9 @@ import {Text, View} from 'react-native';
 import * as React from 'react';
 import {Button, Card} from 'react-native-elements';
 
+import {DrawerActions, useNavigation} from '@react-navigation/native';
 export default function Foot() {
+  const navigation = useNavigation();
   return (
     <Card>
       <View>
@@ -15,7 +17,11 @@ export default function Foot() {
           Get to know your ranking result
         </Text>
       </View>
-      <Button type="outline" title="Check!" />
+      <Button
+        onPress={() => navigation.dispatch(DrawerActions.jumpTo('Results'))}
+        type="outline"
+        title="Check!"
+      />
     </Card>
   );
 }

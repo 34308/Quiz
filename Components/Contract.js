@@ -3,10 +3,8 @@ import {ScrollView, Text} from 'react-native';
 import {Button, Card} from 'react-native-elements';
 
 import {useNavigation} from '@react-navigation/native';
-import {storeData} from './StorageHelper';
+import {getData, storeData} from './StorageHelper';
 import SplashScreen from 'react-native-splash-screen';
-
-
 export default function Contract() {
   const navigation = useNavigation();
 
@@ -14,9 +12,18 @@ export default function Contract() {
     navigation.navigate('Drawer');
     storeData('true', 'HAS_LAUNCHED4');
   }
-  SplashScreen.hide();
+  function hideSplash() {
+    console.log('check of contract');
+    getData('HAS_LAUNCHED4').then(r => {
+      console.log('check of contract2');
+      if ((r === 'false' || r === undefined)) {
+        console.log('check of contract3');
+        SplashScreen.hide();
+      }
+    });
+  }
+  hideSplash();
   return (
-
     <ScrollView>
       <Card>
         <Text>

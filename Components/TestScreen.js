@@ -8,8 +8,6 @@ import {db} from './dbConnector';
 import {getRandomTestIdFromNet} from './serverConnector';
 import NetInfo from '@react-native-community/netinfo';
 import {Button} from '@rneui/base';
-import {StackActions} from '@react-navigation/native';
-import {DrawerActions} from '@react-navigation/native';
 function sendScore(Score, max, type) {
   fetch('https://tgryl.pl/quiz/result', {
     method: 'POST',
@@ -24,12 +22,10 @@ function sendScore(Score, max, type) {
       type: type.toString(),
     }),
   });
-  console.log('wykonano: ' + Score + '  ' + max);
 }
 
 export default class TestScreen extends Component {
   reset() {
-    console.log('test reset');
     this.setState({
       connected: true,
       question: null,
@@ -59,7 +55,7 @@ export default class TestScreen extends Component {
   constructor(props) {
     super(props);
     this.props.navigation.setOptions({headerShown: false, swipeEnabled: false});
-    console.log('constructor'+ props.route.params.id);
+
     if (this.props.route.params.id === -1) {
       // eslint-disable-next-line no-undef
       this.state = {
@@ -92,6 +88,7 @@ export default class TestScreen extends Component {
       };
       this.getQestions(this.props.route.params.id);
     }
+
   }
   interval;
   componentDidMount() {
@@ -100,9 +97,7 @@ export default class TestScreen extends Component {
         count:
           old.count + 1 / this.state.question[this.state.CurrentQ].duration,
       }));
-      console.log(this.state.count);
     }, 1000);
-    console.log('' + this.state.finished);
   }
   componentWillUnmount() {
     unmountComponentAtNodeAndRemoveContainer();
@@ -142,7 +137,6 @@ export default class TestScreen extends Component {
     );
   }
   setQuestion(json) {
-    console.log('json: ' + json);
     this.setState(previousState => ({
       question: json,
     }));
@@ -170,9 +164,10 @@ export default class TestScreen extends Component {
 
   async getQestionsFromNet(id) {
     try {
-      console.log('did id survived?: ' + id);
+
       const response = await fetch('https://tgryl.pl/quiz/test/' + id);
       const json = await response.json();
+      console.log(json.tasks);
       this.setQuestion(json.tasks);
       this.setLoaded(true);
       this.setMax(json.tasks.length);
@@ -188,12 +183,10 @@ export default class TestScreen extends Component {
         query,
         [id],
         (transaction, resultSet) => {
-          console.log('check1' + JSON.parse(resultSet.rows.item(0).tasks)[0]);
           this.setQuestion(JSON.parse(resultSet.rows.item(0).tasks));
           this.setLoaded(true);
           this.setMax(JSON.parse(resultSet.rows.item(0).tasks).length);
           this.setType(resultSet.rows.item.name);
-          console.log('jsonQ: ' + JSON.parse(resultSet.rows.item(0).tasks));
         },
         error => {
           console.log('Inserting error: ' + error.message);
@@ -280,9 +273,10 @@ export default class TestScreen extends Component {
 
   async getQestions(id) {
     NetInfo.fetch().then(async state => {
-      console.log('net1: ' + state.isConnected);
       if (state.isConnected) {
+
         await this.getQestionsFromNet(id);
+
       } else {
         await this.setTestFromDatabase(id);
       }

@@ -43,17 +43,13 @@ export async function getDatabase() {
       query,
       [],
       (transaction, resultSet) => {
-        console.log('succes get:' + 1);
         for (var i = 0; i < resultSet.rows.length; i++) {
-          console.log('succes get:' + 2);
           tests = tests + JSON.stringify(resultSet.rows.item(i));
           if (i < resultSet.rows.length - 1) {
             tests = tests + ',';
           }
         }
         tests = tests + ']';
-
-        console.log('succes get:' + JSON.parse(tests)[0].id);
         return JSON.parse(tests);
       },
       error => {
@@ -88,7 +84,6 @@ export function insertTestsIntoDatabase(json) {
   });
 }
 export function insertDetailsOfTestIntoDatabase(test) {
-  console.log('test db:' + JSON.stringify(test.tasks));
   const query2 =
     'Insert OR IGNORE into test (id,name,description,tags,level,tasks) VALUES (?,?,?,?,?,?);';
   db.transaction(async txn => {

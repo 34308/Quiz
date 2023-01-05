@@ -1,8 +1,8 @@
 import { Text, StyleSheet, TouchableOpacity} from "react-native";
 import * as React from "react";
-import {DrawerActions, useNavigation} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import {Card} from "react-native-elements";
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import {getAllTestFromNet} from './serverConnector';
 import shuffle from 'lodash.shuffle'
 import {db} from './dbConnector';
@@ -13,6 +13,7 @@ import { StackActions } from '@react-navigation/native';
 
 
 export default function TestCard (){
+
     const navigation = useNavigation();
     const [tests,setTests]=useState([]);
     const [shufled,setShufled]=useState(false);
@@ -39,7 +40,7 @@ export default function TestCard (){
                     setTests(shuffle(JSON.parse(tests)));
                 },
                 error => {
-                    console.log('Inserting error: ' + error.message);
+                    console.error('Inserting error: ' + error.message);
                 },
             );
         });
@@ -60,9 +61,7 @@ export default function TestCard (){
         tests.map((u, i) => {
             return (
                 <TouchableOpacity key={u.name} onPress={()=>{
-                    console.log(u.id,u.name);
                     navigation.dispatch(StackActions.push('Drawer',{screen:u.name},{id:u.id,name:u.name}));
-
                 }}>
                     <Card>
                         <Card.Title>{u.name}</Card.Title>

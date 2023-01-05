@@ -22,7 +22,6 @@ export async function getRandomTestIdFromNet() {
     const json = await response.json();
     let l = json.length;
     let randomNumber = Math.floor(Math.random() * l);
-    console.log('download test:' + json[randomNumber].id);
     return json[randomNumber].id.toString();
   } catch (error) {
     console.error('getFromServerError: ' + error.message);
